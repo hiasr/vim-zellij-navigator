@@ -3,6 +3,7 @@ This plugin is designed to give the same functionality as [vim-tmux-navigator](h
 
  Note 1: Because of the still very active development of the Zellij plugin system the current way of making this possible is quite hacky.
  This will change in the near future as the `list_clients` command will be available to plugins.
+ 
 Note 2: When a new session is started, a pane the first time each direction is pressed. This will be fixed in a near release of Zellij when headless mode is available.
 
 ## Installation
