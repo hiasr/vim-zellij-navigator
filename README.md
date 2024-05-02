@@ -9,7 +9,7 @@ Note 2: When a new session is started, a pane the first time each direction is p
 ## Installation
 Zellij plugins do not need to be installed, simply add the keybindings to your zellij configuration file.
 
-To install the Neovim plugin, you can use your favorite plugin manager. 
+To install the Neovim plugin, you can use your favorite plugin manager. This adds a hook so the plugin can know whether the current Zellij pane is running Neovim.
 ```lua
 -- Lazy.nvim
 {
