@@ -4,6 +4,8 @@ This plugin is designed to give the same functionality as [vim-tmux-navigator](h
 Note: When a new session is started, a pane the first time each direction is pressed. This will be fixed in a near release of Zellij when headless mode is available.
 
 ## Installation
+Minimum Zellij version: v0.40.1
+
 Zellij plugins do not need to be installed, simply add the keybindings to your zellij configuration file.
 
 Next to this plugin, you will also need support from the Neovim side to execute the correct commands if the edge of the Neovim panes have been reached.
