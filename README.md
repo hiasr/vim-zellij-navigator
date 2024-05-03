@@ -1,7 +1,7 @@
 # vim-zellij-navigator
-This plugin is designed to give the same functionality as [vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator) in zellij.
+This plugin is designed to give the same functionality as [vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator) in Zellij.
 
-Note: When a new session is started, a pane the first time each direction is pressed. This will be fixed in a near release of Zellij when headless mode is available.
+Note: When a new session is started, a pane flashes the first time each direction is pressed. This will be fixed in a near release of Zellij when headless mode is available.
 
 ## Version 0.1.0 vs 0.2.0
 Version 0.1.0 makes use of an additional Neovim plugin to know whether Neovim is currently opened. 
