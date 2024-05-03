@@ -3,6 +3,10 @@ This plugin is designed to give the same functionality as [vim-tmux-navigator](h
 
 Note: When a new session is started, a pane the first time each direction is pressed. This will be fixed in a near release of Zellij when headless mode is available.
 
+## Version 0.1.0 vs 0.2.0
+Version 0.1.0 makes use of an additional plugin in Neovim to know whether Neovim is currently opened. 
+Starting from 0.2.0 the plugin makes use of the `list-clients` command, this currently has no plugin binding so a shell command needs to be launched from the plugin, this introduces some delay. If this bothers you, you can continue using 0.1.0 by changing the keybindings to use this version. This problem will be gone in the next release when direct plugin bindings for `list-clients` have released.
+
 ## Installation
 Minimum Zellij version: v0.40.1
 
@@ -12,6 +16,17 @@ Next to this plugin, you will also need support from the Neovim side to execute 
 Since the plugin works by sending Ctrl+hjkl to Neovim, these must be bound to the corresponding command in one of the following plugins.
 - [zellij-nav.nvim](https://github.com/swaits/zellij-nav.nvim)
 - [Navigator.nvim](https://github.com/numToStr/Navigator.nvim): There is currently a PR which adds support for Zellij, until then [this fork](https://github.com/dynamotn/Navigator.nvim) can be used. The advantage of Navigator.nvim is that it will detect if it is running in Zellij and Tmux and will work with both without changing any config.
+
+For version <0.2.0 you also need to install this plugin:
+```lua
+-- Lazy.nvim
+{
+    "hiasr/vim-zellij-navigator.nvim",
+    config = function()
+        require('vim-zellij-navigator').setup()
+    end
+},
+```
 
 ## Usage
 ```javascript
