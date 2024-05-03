@@ -87,7 +87,10 @@ impl State {
         if self.current_pane_is_vim() {
             write_chars(direction_to_keybinding(direction));
         } else {
-            move_focus_or_tab(direction);
+            match direction {
+                Direction::Left | Direction::Right => move_focus_or_tab(direction),
+                _ => move_focus(direction),
+            }
         }
     }
 
