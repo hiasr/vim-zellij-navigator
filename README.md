@@ -51,7 +51,6 @@ keybinds {
 
                 // Plugin Configuration
                 move_mod "ctrl"; // Optional, should be added on every command if you want to use it
-                resize_mod "alt"; // Optional, should be added on every command if you want to use it
             };
         }
 
@@ -61,7 +60,6 @@ keybinds {
                 payload "down";
 
                 move_mod "ctrl";
-                resize_mod "alt";
             };
         }
 
@@ -71,7 +69,6 @@ keybinds {
                 payload "up";
 
                 move_mod "ctrl";
-                resize_mod "alt";
             };
         }
 
@@ -81,6 +78,41 @@ keybinds {
                 payload "right";
 
                 move_mod "ctrl";
+            };
+        }
+
+        bind "Alt h" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                name "resize";
+                payload "left";
+
+                resize_mod "alt"; // Optional, should be added on every command if you want to use it
+            };
+        }
+
+        bind "Alt j" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                name "resize";
+                payload "down";
+
+                resize_mod "alt";
+            };
+        }
+
+        bind "Alt k" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                name "resize";
+                payload "up";
+
+                resize_mod "alt";
+            };
+        }
+
+        bind "Alt l" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                name "resize";
+                payload "right";
+
                 resize_mod "alt";
             };
         }
