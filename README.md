@@ -40,6 +40,7 @@ This is because the plugin is loaded with the configuration of the first command
 Available configuration options:
 - `move_mod`: The modifier key passed to Neovim with `move_focus` or `move_focus_or_tab`. Default: `ctrl`. Options: `ctrl`, `alt`.
 - `resize_mod`: The modifier key passed to Neovim with the `resize` command. Default: `alt`. Options: `ctrl`, `alt`.
+- `disable_for_apps`: The list of apps to automatically disable this plugin for so the shortcuts work as they would normally. Default: `"vim,nvim,fzf"`.
 
 ```javascript
 keybinds {

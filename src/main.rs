@@ -2,6 +2,8 @@ use zellij_tile::prelude::*;
 
 use std::collections::{BTreeMap, VecDeque};
 
+const DEFAULT_DISABLED_APPS: &[&str; 3] = &["vim", "nvim", "fzf"];
+
 struct State {
     permissions_granted: bool,
     current_term_command: Option<String>,
@@ -10,6 +12,7 @@ struct State {
     // Configuration
     move_mod: Mod,
     resize_mod: Mod,
+    disable_for_apps: Vec<String>,
 }
 
 enum Command {
@@ -90,6 +93,7 @@ impl Default for State {
 
             move_mod: Mod::Ctrl,
             resize_mod: Mod::Alt,
+            disable_for_apps: DEFAULT_DISABLED_APPS.map(ToString::to_string).to_vec(),
         }
     }
 }
@@ -101,7 +105,7 @@ impl State {
     }
 
     fn execute_command(&mut self, command: Command) {
-        if self.current_pane_is_vim() {
+        if self.current_pane_is_disabled_app() {
             write_chars(&self.command_to_keybind(&command));
             return;
         }
@@ -115,11 +119,9 @@ impl State {
         }
     }
 
-    fn current_pane_is_vim(&self) -> bool {
+    fn current_pane_is_disabled_app(&self) -> bool {
         if let Some(current_command) = &self.current_term_command {
-            if current_command == "nvim" || current_command == "vim" {
-                return true;
-            }
+            return self.disable_for_apps.contains(current_command);
         }
         false
     }
@@ -131,6 +133,10 @@ impl State {
         self.resize_mod = configuration.get("resize_mod").map_or(Mod::Alt, |f| {
             string_to_mod(f).expect("Illegal modifier for resize_mod")
         });
+        self.disable_for_apps = configuration.get("disable_for_apps").map_or(
+            DEFAULT_DISABLED_APPS.map(ToString::to_string).to_vec(),
+            |f| f.split(",").map(|s| s.trim().to_string()).collect(),
+        );
     }
 
     fn command_to_keybind(&mut self, command: &Command) -> String {
