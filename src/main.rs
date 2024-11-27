@@ -10,6 +10,7 @@ struct State {
     command_queue: VecDeque<Command>,
 
     // Configuration
+    enabled: bool,
     move_mod: Mod,
     resize_mod: Mod,
     disable_for_apps: Vec<String>,
@@ -77,7 +78,7 @@ impl ZellijPlugin for State {
     fn render(&mut self, _rows: usize, _cols: usize) {}
 
     fn pipe(&mut self, pipe_message: PipeMessage) -> bool {
-        if let Some(command) = parse_command(pipe_message) {
+        if let Some(command) = self.handle_message(pipe_message) {
             self.handle_command(command);
         }
         true
@@ -91,6 +92,7 @@ impl Default for State {
             current_term_command: None,
             command_queue: VecDeque::new(),
 
+            enabled: true,
             move_mod: Mod::Ctrl,
             resize_mod: Mod::Alt,
             disable_for_apps: DEFAULT_DISABLED_APPS.map(ToString::to_string).to_vec(),
@@ -99,13 +101,26 @@ impl Default for State {
 }
 
 impl State {
+    fn handle_message(&mut self, pipe_message: PipeMessage) -> Option<Command> {
+        let payload = pipe_message.payload?;
+        match payload.as_str() {
+            "enable" => self.enabled = true,
+            "disable" => self.enabled = false,
+            "toggle" => self.enabled = !self.enabled,
+            value => {
+                return parse_command(&pipe_message.name, value);
+            }
+        }
+        None
+    }
+
     fn handle_command(&mut self, command: Command) {
         self.command_queue.push_back(command);
         run_command(&["zellij", "action", "list-clients"], BTreeMap::new());
     }
 
     fn execute_command(&mut self, command: Command) {
-        if self.current_pane_is_disabled_app() {
+        if !self.enabled || self.current_pane_is_disabled_app() {
             write_chars(&self.command_to_keybind(&command));
             return;
         }
@@ -218,13 +233,10 @@ fn string_to_mod(s: &str) -> Option<Mod> {
     }
 }
 
-fn parse_command(pipe_message: PipeMessage) -> Option<Command> {
-    let payload = pipe_message.payload?;
-    let command = pipe_message.name;
+fn parse_command(command: &str, payload: &str) -> Option<Command> {
+    let direction = string_to_direction(payload)?;
 
-    let direction = string_to_direction(payload.as_str())?;
-
-    match command.as_str() {
+    match command {
         "move_focus" => Some(Command::MoveFocus(direction)),
         "move_focus_or_tab" => Some(Command::MoveFocusOrTab(direction)),
         "resize" => Some(Command::Resize(direction)),
