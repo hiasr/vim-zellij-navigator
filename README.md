@@ -14,6 +14,8 @@ Zellij plugins do not need to be installed, simply add the keybindings to your z
 
 Next to this plugin, you will also need support from the Neovim side to execute the correct commands if the edge of the Neovim panes have been reached.
 Since the plugin works by sending Ctrl+hjkl to Neovim, these must be bound to the corresponding command in one of the following plugins.
+
+- [smart-splits.nvim](https://github.com/mrjones2014/smart-splits.nvim)
 - [zellij-nav.nvim](https://github.com/swaits/zellij-nav.nvim)
 - [Navigator.nvim](https://github.com/numToStr/Navigator.nvim): There is currently a PR which adds support for Zellij, until then [this fork](https://github.com/dynamotn/Navigator.nvim) can be used. The advantage of Navigator.nvim is that it will detect if it is running in Zellij and Tmux and will work with both without changing any config.
 
