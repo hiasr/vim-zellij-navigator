@@ -31,14 +31,11 @@ impl ZellijPlugin for State {
         self.parse_configuration(configuration);
 
         request_permission(&[
-            PermissionType::RunCommands,
             PermissionType::WriteToStdin,
             PermissionType::ChangeApplicationState,
+            PermissionType::ReadApplicationState,
         ]);
-        subscribe(&[
-            EventType::PermissionRequestResult,
-            EventType::RunCommandResult,
-        ]);
+        subscribe(&[EventType::PermissionRequestResult, EventType::ListClients]);
         if self.permissions_granted {
             hide_self();
         }
@@ -46,17 +43,14 @@ impl ZellijPlugin for State {
 
     fn update(&mut self, event: Event) -> bool {
         match event {
-            Event::RunCommandResult(_, stdout, _, _) => {
-                let stdout = String::from_utf8(stdout).unwrap();
-
-                self.current_term_command = term_command_from_client_list(stdout);
+            Event::ListClients(list) => {
+                self.current_term_command = term_command_from_client_list(list);
 
                 if !self.command_queue.is_empty() {
                     let command = self.command_queue.pop_front().unwrap();
                     self.execute_command(command);
                 }
             }
-
             Event::PermissionRequestResult(permission) => {
                 self.permissions_granted = match permission {
                     PermissionStatus::Granted => true,
@@ -70,8 +64,6 @@ impl ZellijPlugin for State {
         }
         true
     }
-
-    fn render(&mut self, _rows: usize, _cols: usize) {}
 
     fn pipe(&mut self, pipe_message: PipeMessage) -> bool {
         if let Some(command) = parse_command(pipe_message) {
@@ -97,7 +89,7 @@ impl Default for State {
 impl State {
     fn handle_command(&mut self, command: Command) {
         self.command_queue.push_back(command);
-        run_command(&["zellij", "action", "list-clients"], BTreeMap::new());
+        list_clients();
     }
 
     fn execute_command(&mut self, command: Command) {
@@ -152,25 +144,15 @@ impl State {
     }
 }
 
-fn term_command_from_client_list(cl: String) -> Option<String> {
-    let clients = cl.split('\n').skip(1).collect::<Vec<&str>>();
-    if clients.is_empty() {
-        return None;
+fn term_command_from_client_list(clients: Vec<ClientInfo>) -> Option<String> {
+    for c in clients {
+        if c.is_current_client {
+            let command = c.running_command.split(' ').next()?;
+            let command = command.split('/').next_back()?;
+            return Some(command.to_string());
+        }
     }
-
-    let columns = clients[0].split_whitespace().collect::<Vec<&str>>();
-    if columns.len() < 3 {
-        return None;
-    }
-
-    let is_terminal = columns[1].starts_with("terminal");
-    let no_command = columns[2] == "N/A";
-    if !is_terminal || no_command {
-        return None;
-    }
-
-    let command = columns[2].split('/').last()?;
-    Some(command.to_string())
+    None
 }
 
 fn ctrl_keybinding(direction: &Direction) -> String {
