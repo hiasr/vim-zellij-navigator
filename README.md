@@ -35,6 +35,7 @@ Available commands:
 - `move_focus` with payload `up`, `down`, `left`, `right` to move the focus in the corresponding direction.
 - `move_focus_or_tab` with payload `up`, `down`, `left`, `right` to move the focus in the corresponding direction or switch to the next tab if the focus is already at the edge.
 - `resize` with payload `up`, `down`, `left`, `right` to resize the pane in the corresponding direction.
+- `enable`/`disable` or `toggle` as the payload to control if the plugin is active.
 
 If you use configuration for the plugin it must be added to every command in order to function consistently. 
 This is because the plugin is loaded with the configuration of the first command executed.
@@ -42,6 +43,9 @@ This is because the plugin is loaded with the configuration of the first command
 Available configuration options:
 - `move_mod`: The modifier key passed to Neovim with `move_focus` or `move_focus_or_tab`. Default: `ctrl`. Options: `ctrl`, `alt`.
 - `resize_mod`: The modifier key passed to Neovim with the `resize` command. Default: `alt`. Options: `ctrl`, `alt`.
+- `disable_for_apps`: The list of apps to automatically disable this plugin for so the shortcuts work as they would normally. Default: `"vim,nvim,fzf"`.
+
+Example keybindings:
 
 ```javascript
 keybinds {
@@ -122,3 +126,48 @@ keybinds {
 }
 ```
 
+If other applications use the same keybindings, like fzf in combination with Shell forward/backward command history search, you can configure these keybindings to first disable this plugin's keybindings and reenable them another keybindings was pressed. For example, press `Ctrl+r` to disable the plugin but still start command history search. Then on `ESC`/`Enter` or `Ctrl+c`, reenable the plugin again.
+
+```javascript
+keybindings {
+    shared_except "locked" {
+        bind "Ctrl r" { // Backward shell history
+            WriteChars "\u{0012}"; // Passthrough `Ctrl+r`
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                payload "disable";
+            };
+        }
+        bind "Ctrl s" { // Forward shell history
+            WriteChars "\u{0013}"; // Passthrough `Ctrl+s`
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                payload "disable";
+            };
+        }
+        bind "ESC" {
+            WriteChars "\u{001B}"; // Passthrough `ESC`
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                payload "enable";
+            };
+        }
+        bind "Enter" {
+            WriteChars "\u{000D}"; // Passthrough `Enter`
+            MessagePlugin "zellij-move" {
+                payload "enable";
+            };
+        }
+        bind "Ctrl c" {
+            WriteChars "\u{0003}"; // Passthrough `Ctrl+c`
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                payload "enable";
+            };
+        }
+
+        // Toggle the plugin on or off manually
+        bind "Ctrl Alt a" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                payload "toggle";
+            };
+        }
+    }
+}
+```

@@ -2,14 +2,18 @@ use zellij_tile::prelude::*;
 
 use std::collections::{BTreeMap, VecDeque};
 
+const DEFAULT_DISABLED_APPS: &[&str; 3] = &["vim", "nvim", "fzf"];
+
 struct State {
     permissions_granted: bool,
     current_term_command: Option<String>,
     command_queue: VecDeque<Command>,
 
     // Configuration
+    enabled: bool,
     move_mod: Mod,
     resize_mod: Mod,
+    disable_for_apps: Vec<String>,
 }
 
 enum Command {
@@ -66,7 +70,7 @@ impl ZellijPlugin for State {
     }
 
     fn pipe(&mut self, pipe_message: PipeMessage) -> bool {
-        if let Some(command) = parse_command(pipe_message) {
+        if let Some(command) = self.handle_message(pipe_message) {
             self.handle_command(command);
         }
         true
@@ -80,20 +84,35 @@ impl Default for State {
             current_term_command: None,
             command_queue: VecDeque::new(),
 
+            enabled: true,
             move_mod: Mod::Ctrl,
             resize_mod: Mod::Alt,
+            disable_for_apps: DEFAULT_DISABLED_APPS.map(ToString::to_string).to_vec(),
         }
     }
 }
 
 impl State {
+    fn handle_message(&mut self, pipe_message: PipeMessage) -> Option<Command> {
+        let payload = pipe_message.payload?;
+        match payload.as_str() {
+            "enable" => self.enabled = true,
+            "disable" => self.enabled = false,
+            "toggle" => self.enabled = !self.enabled,
+            value => {
+                return parse_command(&pipe_message.name, value);
+            }
+        }
+        None
+    }
+
     fn handle_command(&mut self, command: Command) {
         self.command_queue.push_back(command);
         list_clients();
     }
 
     fn execute_command(&mut self, command: Command) {
-        if self.current_pane_is_vim() {
+        if !self.enabled || self.current_pane_is_disabled_app() {
             write_chars(&self.command_to_keybind(&command));
             return;
         }
@@ -107,11 +126,9 @@ impl State {
         }
     }
 
-    fn current_pane_is_vim(&self) -> bool {
+    fn current_pane_is_disabled_app(&self) -> bool {
         if let Some(current_command) = &self.current_term_command {
-            if current_command == "nvim" || current_command == "vim" {
-                return true;
-            }
+            return self.disable_for_apps.contains(current_command);
         }
         false
     }
@@ -123,6 +140,10 @@ impl State {
         self.resize_mod = configuration.get("resize_mod").map_or(Mod::Alt, |f| {
             string_to_mod(f).expect("Illegal modifier for resize_mod")
         });
+        self.disable_for_apps = configuration.get("disable_for_apps").map_or(
+            DEFAULT_DISABLED_APPS.map(ToString::to_string).to_vec(),
+            |f| f.split(",").map(|s| s.trim().to_string()).collect(),
+        );
     }
 
     fn command_to_keybind(&mut self, command: &Command) -> String {
@@ -194,13 +215,10 @@ fn string_to_mod(s: &str) -> Option<Mod> {
     }
 }
 
-fn parse_command(pipe_message: PipeMessage) -> Option<Command> {
-    let payload = pipe_message.payload?;
-    let command = pipe_message.name;
+fn parse_command(command: &str, payload: &str) -> Option<Command> {
+    let direction = string_to_direction(payload)?;
 
-    let direction = string_to_direction(payload.as_str())?;
-
-    match command.as_str() {
+    match command {
         "move_focus" => Some(Command::MoveFocus(direction)),
         "move_focus_or_tab" => Some(Command::MoveFocusOrTab(direction)),
         "resize" => Some(Command::Resize(direction)),
