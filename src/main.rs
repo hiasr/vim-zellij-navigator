@@ -11,6 +11,7 @@ struct State {
     // Configuration
     move_mod: Vec<Mod>,
     resize_mod: Vec<Mod>,
+    use_arrow_keys: bool,
 }
 
 enum Command {
@@ -89,6 +90,7 @@ impl Default for State {
 
             move_mod: vec![Mod::Ctrl],
             resize_mod: vec![Mod::Alt],
+            use_arrow_keys: false,
         }
     }
 }
@@ -130,12 +132,13 @@ impl State {
         self.resize_mod = configuration.get("resize_mod").map_or(vec![Mod::Alt], |f| {
             Self::parse_modifiers(f).expect("Illegal modifier for resize_mod")
         });
+        self.use_arrow_keys = configuration
+            .get("use_arrow_keys")
+            .is_some_and(|v| v.to_lowercase() == "true");
     }
 
     fn parse_modifiers(input: &str) -> Result<Vec<Mod>, String> {
-        input.split('+')
-            .map(|s| s.trim().parse::<Mod>())
-            .collect()
+        input.split('+').map(|s| s.trim().parse::<Mod>()).collect()
     }
 
     fn command_to_keybind(&mut self, command: &Command) -> String {
@@ -151,7 +154,7 @@ impl State {
         };
 
         // Use the ASCII control characters for single modifier keybindings
-        if modifiers.len() == 1 {
+        if modifiers.len() == 1 && !self.use_arrow_keys {
             match &modifiers[0] {
                 Mod::Ctrl => return ctrl_keybinding(direction),
                 Mod::Alt => return alt_keybinding(direction),
@@ -159,7 +162,10 @@ impl State {
             }
         }
 
-        // Fallback to kitty format for other modifier combinations
+        if self.use_arrow_keys {
+            return arrow_kitty_keybinding(direction, modifiers);
+        }
+
         kitty_keybinding(direction, modifiers)
     }
 }
@@ -174,7 +180,6 @@ fn term_command_from_client_list(clients: Vec<ClientInfo>) -> Option<String> {
     }
     None
 }
-
 
 fn mod_to_kitty_protocol(modifier: &Mod) -> u8 {
     match modifier {
@@ -218,6 +223,17 @@ fn mods_to_kitty_protocol(modifiers: &[Mod]) -> String {
     format!("{}", kitty_modifiers)
 }
 
+fn arrow_kitty_keybinding(direction: &Direction, modifiers: &[Mod]) -> String {
+    let key_code = match direction {
+        Direction::Up => "A",
+        Direction::Down => "B",
+        Direction::Right => "C",
+        Direction::Left => "D",
+    };
+    let mod_code = mods_to_kitty_protocol(modifiers);
+    format!("\x1b\x5b1;{}{}", mod_code, key_code)
+}
+
 fn kitty_keybinding(direction: &Direction, modifiers: &[Mod]) -> String {
     let key_code = match direction {
         Direction::Left => "104",
@@ -230,7 +246,6 @@ fn kitty_keybinding(direction: &Direction, modifiers: &[Mod]) -> String {
 
     format!("\x1b\x5b{};{}u", key_code, mod_code)
 }
-
 
 fn string_to_direction(s: &str) -> Option<Direction> {
     match s {

@@ -42,6 +42,7 @@ This is because the plugin is loaded with the configuration of the first command
 Available configuration options:
 - `move_mod`: The modifier keys passed to Neovim with `move_focus` or `move_focus_or_tab`. Default: `ctrl`. Multiple modifier keys should be separated with a `+`.
 - `resize_mod`: The modifier keys passed to Neovim with the `resize` command. Default: `alt`. Multiple modifier keys should be separated with a `+`.
+- `use_arrow_keys`: When set to `true`, uses arrow key sequences instead of hjkl for keybindings sent to Neovim. This setting can differ per command. Default: `false`.
 
 ### Modifier Keys Support
 
@@ -60,7 +61,7 @@ Examples:
 - Multiple modifiers: `move_mod "ctrl+shift"`
 - Complex combination: `resize_mod "alt+super+shift"`
 
-**Note:** Single `ctrl` and `alt` modifiers use optimized ASCII control characters and escape sequences respectively. All other combinations (including multi-modifier with ctrl/alt) use the kitty keyboard protocol for maximum compatibility.
+**Note:** Single `ctrl` and `alt` modifiers without using arrow keys use optimized ASCII control characters and escape sequences respectively. All other combinations (including multi-modifier with ctrl/alt) use the kitty keyboard protocol. Unexpected behaviour may occur if your terminal emulator doesn't support this.
 
 ### Example Configuration
 
@@ -74,7 +75,8 @@ keybinds {
                 payload "left";
 
                 // Plugin Configuration
-                move_mod "ctrl"; // Optional, should be added on every command if you want to use it
+                move_mod "ctrl"; // Optional, should be added on every move command if changed.
+                use_arrow_keys "false"; // Optional, uses arrow keys instead of hjkl. Should be added to every command where you want to use it.
             };
         }
 
@@ -84,6 +86,7 @@ keybinds {
                 payload "down";
 
                 move_mod "ctrl";
+                use_arrow_keys "false";
             };
         }
 
@@ -93,6 +96,7 @@ keybinds {
                 payload "up";
 
                 move_mod "ctrl";
+                use_arrow_keys "false";
             };
         }
 
@@ -101,7 +105,8 @@ keybinds {
                 name "move_focus_or_tab";
                 payload "right";
 
-                move_mod "ctrl";
+                move_mod "ctrl"; // Optional, should be added on every command if you want to use it
+                use_arrow_keys "false";
             };
         }
 
@@ -110,7 +115,7 @@ keybinds {
                 name "resize";
                 payload "left";
 
-                resize_mod "alt"; // Optional, should be added on every command if you want to use it
+                resize_mod "alt"; 
             };
         }
 
@@ -154,6 +159,7 @@ keybinds {
                 payload "left";
                 
                 move_mod "ctrl+shift"; // Multiple modifiers
+                resize_mod "alt+super"
             };
         }
         
@@ -162,7 +168,8 @@ keybinds {
                 name "resize";
                 payload "down";
                 
-                resize_mod "alt+super"; // Multiple modifiers
+                move_mod "ctrl+shift"; 
+                resize_mod "alt+super";
             };
         }
     }
