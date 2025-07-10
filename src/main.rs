@@ -1,6 +1,7 @@
 use zellij_tile::prelude::*;
 
 use std::collections::{BTreeMap, VecDeque};
+use std::str::FromStr;
 
 struct State {
     permissions_granted: bool,
@@ -8,8 +9,8 @@ struct State {
     command_queue: VecDeque<Command>,
 
     // Configuration
-    move_mod: Mod,
-    resize_mod: Mod,
+    move_mod: Vec<Mod>,
+    resize_mod: Vec<Mod>,
 }
 
 enum Command {
@@ -20,8 +21,14 @@ enum Command {
 
 #[derive(Debug)]
 enum Mod {
-    Ctrl,
+    Shift,
     Alt,
+    Ctrl,
+    Super,
+    Hyper,
+    Meta,
+    CapsLock,
+    NumLock,
 }
 
 register_plugin!(State);
@@ -80,8 +87,8 @@ impl Default for State {
             current_term_command: None,
             command_queue: VecDeque::new(),
 
-            move_mod: Mod::Ctrl,
-            resize_mod: Mod::Alt,
+            move_mod: vec![Mod::Ctrl],
+            resize_mod: vec![Mod::Alt],
         }
     }
 }
@@ -117,16 +124,22 @@ impl State {
     }
 
     fn parse_configuration(&mut self, configuration: BTreeMap<String, String>) {
-        self.move_mod = configuration.get("move_mod").map_or(Mod::Ctrl, |f| {
-            string_to_mod(f).expect("Illegal modifier for move_mod")
+        self.move_mod = configuration.get("move_mod").map_or(vec![Mod::Ctrl], |f| {
+            Self::parse_modifiers(f).expect("Illegal modifier for move_mod")
         });
-        self.resize_mod = configuration.get("resize_mod").map_or(Mod::Alt, |f| {
-            string_to_mod(f).expect("Illegal modifier for resize_mod")
+        self.resize_mod = configuration.get("resize_mod").map_or(vec![Mod::Alt], |f| {
+            Self::parse_modifiers(f).expect("Illegal modifier for resize_mod")
         });
     }
 
+    fn parse_modifiers(input: &str) -> Result<Vec<Mod>, String> {
+        input.split('+')
+            .map(|s| s.trim().parse::<Mod>())
+            .collect()
+    }
+
     fn command_to_keybind(&mut self, command: &Command) -> String {
-        let mod_key = match command {
+        let modifiers = match command {
             Command::MoveFocus(_) | Command::MoveFocusOrTab(_) => &self.move_mod,
             Command::Resize(_) => &self.resize_mod,
         };
@@ -137,10 +150,17 @@ impl State {
             | Command::Resize(direction) => direction,
         };
 
-        match mod_key {
-            Mod::Ctrl => ctrl_keybinding(direction),
-            Mod::Alt => alt_keybinding(direction),
+        // Use the ASCII control characters for single modifier keybindings
+        if modifiers.len() == 1 {
+            match &modifiers[0] {
+                Mod::Ctrl => return ctrl_keybinding(direction),
+                Mod::Alt => return alt_keybinding(direction),
+                _ => {}
+            }
         }
+
+        // Fallback to kitty format for other modifier combinations
+        kitty_keybinding(direction, modifiers)
     }
 }
 
@@ -153,6 +173,20 @@ fn term_command_from_client_list(clients: Vec<ClientInfo>) -> Option<String> {
         }
     }
     None
+}
+
+
+fn mod_to_kitty_protocol(modifier: &Mod) -> u8 {
+    match modifier {
+        Mod::Shift => 1,
+        Mod::Alt => 2,
+        Mod::Ctrl => 4,
+        Mod::Super => 8,
+        Mod::Hyper => 16,
+        Mod::Meta => 32,
+        Mod::CapsLock => 64,
+        Mod::NumLock => 128,
+    }
 }
 
 fn ctrl_keybinding(direction: &Direction) -> String {
@@ -176,6 +210,28 @@ fn alt_keybinding(direction: &Direction) -> String {
     char_vec.iter().collect()
 }
 
+fn mods_to_kitty_protocol(modifiers: &[Mod]) -> String {
+    let mut kitty_modifiers = 1;
+    for modifier in modifiers {
+        kitty_modifiers += mod_to_kitty_protocol(modifier);
+    }
+    format!("{}", kitty_modifiers)
+}
+
+fn kitty_keybinding(direction: &Direction, modifiers: &[Mod]) -> String {
+    let key_code = match direction {
+        Direction::Left => "104",
+        Direction::Right => "108",
+        Direction::Up => "107",
+        Direction::Down => "106",
+    };
+
+    let mod_code = mods_to_kitty_protocol(modifiers);
+
+    format!("\x1b\x5b{};{}u", key_code, mod_code)
+}
+
+
 fn string_to_direction(s: &str) -> Option<Direction> {
     match s {
         "left" => Some(Direction::Left),
@@ -186,11 +242,21 @@ fn string_to_direction(s: &str) -> Option<Direction> {
     }
 }
 
-fn string_to_mod(s: &str) -> Option<Mod> {
-    match s.to_lowercase().as_str() {
-        "ctrl" => Some(Mod::Ctrl),
-        "alt" => Some(Mod::Alt),
-        _ => None,
+impl FromStr for Mod {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "shift" => Ok(Mod::Shift),
+            "alt" => Ok(Mod::Alt),
+            "ctrl" => Ok(Mod::Ctrl),
+            "super" => Ok(Mod::Super),
+            "hyper" => Ok(Mod::Hyper),
+            "meta" => Ok(Mod::Meta),
+            "caps_lock" => Ok(Mod::CapsLock),
+            "num_lock" => Ok(Mod::NumLock),
+            _ => Err(format!("Invalid modifier: {}", s)),
+        }
     }
 }
 

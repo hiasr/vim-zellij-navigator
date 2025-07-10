@@ -40,9 +40,31 @@ If you use configuration for the plugin it must be added to every command in ord
 This is because the plugin is loaded with the configuration of the first command executed.
 
 Available configuration options:
-- `move_mod`: The modifier key passed to Neovim with `move_focus` or `move_focus_or_tab`. Default: `ctrl`. Options: `ctrl`, `alt`.
-- `resize_mod`: The modifier key passed to Neovim with the `resize` command. Default: `alt`. Options: `ctrl`, `alt`.
+- `move_mod`: The modifier keys passed to Neovim with `move_focus` or `move_focus_or_tab`. Default: `ctrl`. Multiple modifier keys should be separated with a `+`.
+- `resize_mod`: The modifier keys passed to Neovim with the `resize` command. Default: `alt`. Multiple modifier keys should be separated with a `+`.
 
+### Modifier Keys Support
+
+The plugin supports multiple modifier combinations. Available modifiers:
+- `ctrl` - Control key (uses ASCII control characters when used alone)
+- `alt` - Alt key (uses escape sequences when used alone)
+- `shift` - Shift key
+- `super` - Super/Windows key
+- `hyper` - Hyper key
+- `meta` - Meta key
+- `caps_lock` - Caps Lock key
+- `num_lock` - Num Lock key
+
+Examples:
+- Single modifier: `move_mod "ctrl"`
+- Multiple modifiers: `move_mod "ctrl+shift"`
+- Complex combination: `resize_mod "alt+super+shift"`
+
+**Note:** Single `ctrl` and `alt` modifiers use optimized ASCII control characters and escape sequences respectively. All other combinations (including multi-modifier with ctrl/alt) use the kitty keyboard protocol for maximum compatibility.
+
+### Example Configuration
+
+Basic configuration:
 ```javascript
 keybinds {
     shared_except "locked" {
@@ -116,6 +138,31 @@ keybinds {
                 payload "right";
 
                 resize_mod "alt";
+            };
+        }
+    }
+}
+```
+
+Configuration with multiple modifiers:
+```javascript
+keybinds {
+    shared_except "locked" {
+        bind "Ctrl Shift h" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                name "move_focus";
+                payload "left";
+                
+                move_mod "ctrl+shift"; // Multiple modifiers
+            };
+        }
+        
+        bind "Alt Super j" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                name "resize";
+                payload "down";
+                
+                resize_mod "alt+super"; // Multiple modifiers
             };
         }
     }
