@@ -8,7 +8,7 @@ Version 0.1.0 makes use of an additional Neovim plugin to know whether Neovim is
 Starting from 0.2.0 the plugin makes use of the Zellij `list-clients` command to remove the need for the Neovim plugin, this currently has no plugin binding so a shell command needs to be launched from the plugin, which introduces some delay. If this bothers you, you can continue using 0.1.0 by changing the keybindings to use this version. This problem will be gone in the next release when direct plugin bindings for `list-clients` have released.
 
 ## Installation
-Minimum Zellij version: v0.40.1
+Minimum Zellij version: v0.42.2
 
 Zellij plugins do not need to be installed, simply add the keybindings to your zellij configuration file.
 
@@ -70,7 +70,7 @@ Basic configuration:
 keybinds {
     shared_except "locked" {
         bind "Ctrl h" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
                 name "move_focus_or_tab";
                 payload "left";
 
@@ -81,7 +81,7 @@ keybinds {
         }
 
         bind "Ctrl j" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
                 name "move_focus";
                 payload "down";
 
@@ -91,7 +91,7 @@ keybinds {
         }
 
         bind "Ctrl k" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
                 name "move_focus";
                 payload "up";
 
@@ -101,7 +101,7 @@ keybinds {
         }
 
         bind "Ctrl l" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
                 name "move_focus_or_tab";
                 payload "right";
 
@@ -111,7 +111,7 @@ keybinds {
         }
 
         bind "Alt h" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
                 name "resize";
                 payload "left";
 
@@ -120,7 +120,7 @@ keybinds {
         }
 
         bind "Alt j" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
                 name "resize";
                 payload "down";
 
@@ -129,7 +129,7 @@ keybinds {
         }
 
         bind "Alt k" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
                 name "resize";
                 payload "up";
 
@@ -138,7 +138,7 @@ keybinds {
         }
 
         bind "Alt l" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
                 name "resize";
                 payload "right";
 
@@ -154,7 +154,7 @@ Configuration with multiple modifiers:
 keybinds {
     shared_except "locked" {
         bind "Ctrl Shift h" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
                 name "move_focus";
                 payload "left";
                 
@@ -164,7 +164,7 @@ keybinds {
         }
         
         bind "Alt Super j" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
                 name "resize";
                 payload "down";
                 

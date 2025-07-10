@@ -1,6 +1,6 @@
 [package]
 name = "vim-zellij-navigator"
-version = "0.1.0"
+version = "0.3.0"
 authors = ["Ruben Hias"]
 edition = "2018"
 
