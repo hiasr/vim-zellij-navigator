@@ -9,6 +9,7 @@ struct State {
     command_queue: VecDeque<Command>,
 
     // Configuration
+    vim_commands: Vec<String>,
     move_mod: Vec<Mod>,
     resize_mod: Vec<Mod>,
     use_arrow_keys: bool,
@@ -88,6 +89,7 @@ impl Default for State {
             current_term_command: None,
             command_queue: VecDeque::new(),
 
+            vim_commands: vec!["vim".to_string(), "nvim".to_string()],
             move_mod: vec![Mod::Ctrl],
             resize_mod: vec![Mod::Alt],
             use_arrow_keys: false,
@@ -118,7 +120,9 @@ impl State {
 
     fn current_pane_is_vim(&self) -> bool {
         if let Some(current_command) = &self.current_term_command {
-            if current_command == "nvim" || current_command == "vim" {
+            if self.vim_commands.contains(&current_command)
+                || self.vim_commands.contains(&current_command)
+            {
                 return true;
             }
         }
@@ -126,6 +130,12 @@ impl State {
     }
 
     fn parse_configuration(&mut self, configuration: BTreeMap<String, String>) {
+        if let Some(vim_commands) = configuration.get("vim_commands") {
+            self.vim_commands = vim_commands
+                .split(',')
+                .map(|s| s.trim().to_string())
+                .collect();
+        }
         self.move_mod = configuration.get("move_mod").map_or(vec![Mod::Ctrl], |f| {
             Self::parse_modifiers(f).expect("Illegal modifier for move_mod")
         });
