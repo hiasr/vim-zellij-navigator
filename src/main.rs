@@ -52,6 +52,15 @@ impl ZellijPlugin for State {
     fn update(&mut self, event: Event) -> bool {
         match event {
             Event::ListClients(list) => {
+                // is_current_client is set by comparing against this plugin instance's
+                // owning client_id. If the owning client disconnected, no client will
+                // match, meaning this is an orphaned plugin instance.
+                let has_current_client = list.iter().any(|c| c.is_current_client);
+                if !has_current_client {
+                    self.command_queue.clear();
+                    return true;
+                }
+
                 self.current_term_command = term_command_from_client_list(list);
 
                 if !self.command_queue.is_empty() {
