@@ -11,6 +11,7 @@ struct State {
     // Configuration
     move_mod: Vec<Mod>,
     resize_mod: Vec<Mod>,
+    vims: Vec<String>,
     use_arrow_keys: bool,
 }
 
@@ -90,6 +91,7 @@ impl Default for State {
 
             move_mod: vec![Mod::Ctrl],
             resize_mod: vec![Mod::Alt],
+            vims: vec!["nvim".to_string(), "vim".to_string()],
             use_arrow_keys: false,
         }
     }
@@ -118,8 +120,23 @@ impl State {
 
     fn current_pane_is_vim(&self) -> bool {
         if let Some(current_command) = &self.current_term_command {
-            if current_command == "nvim" || current_command == "vim" {
-                return true;
+            let current_command = current_command.to_lowercase();
+            for vim in &self.vims {
+                let vim = vim.to_lowercase();
+                let vim_exe = if vim.ends_with(".exe") {
+                    vim.clone()
+                } else {
+                    format!("{}.exe", vim)
+                };
+                let vim_no_exe = vim.strip_suffix(".exe").unwrap_or(&vim).to_string();
+
+                // Split by spaces and path separators to find the executable name
+                if current_command
+                    .split(|c| c == ' ' || c == '/' || c == '\\')
+                    .any(|part| part == vim_no_exe || part == vim_exe)
+                {
+                    return true;
+                }
             }
         }
         false
@@ -132,6 +149,15 @@ impl State {
         self.resize_mod = configuration.get("resize_mod").map_or(vec![Mod::Alt], |f| {
             Self::parse_modifiers(f).expect("Illegal modifier for resize_mod")
         });
+        self.vims = configuration.get("vims").map_or(
+            vec!["nvim".to_string(), "vim".to_string()],
+            |v| {
+                v.split(';')
+                    .map(|s| s.trim().to_string())
+                    .filter(|s| !s.is_empty())
+                    .collect()
+            },
+        );
         self.use_arrow_keys = configuration
             .get("use_arrow_keys")
             .is_some_and(|v| v.to_lowercase() == "true");
@@ -173,9 +199,7 @@ impl State {
 fn term_command_from_client_list(clients: Vec<ClientInfo>) -> Option<String> {
     for c in clients {
         if c.is_current_client {
-            let command = c.running_command.split(' ').next()?;
-            let command = command.split('/').next_back()?;
-            return Some(command.to_string());
+            return Some(c.running_command);
         }
     }
     None
