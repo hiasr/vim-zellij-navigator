@@ -121,11 +121,20 @@ impl State {
     fn current_pane_is_vim(&self) -> bool {
         if let Some(current_command) = &self.current_term_command {
             let current_command = current_command.to_lowercase();
-            let current_command = current_command.strip_suffix(".exe").unwrap_or(&current_command);
             for vim in &self.vims {
                 let vim = vim.to_lowercase();
-                let vim = vim.strip_suffix(".exe").unwrap_or(&vim);
-                if current_command == vim {
+                let vim_exe = if vim.ends_with(".exe") {
+                    vim.clone()
+                } else {
+                    format!("{}.exe", vim)
+                };
+                let vim_no_exe = vim.strip_suffix(".exe").unwrap_or(&vim).to_string();
+
+                // Split by spaces and path separators to find the executable name
+                if current_command
+                    .split(|c| c == ' ' || c == '/' || c == '\\')
+                    .any(|part| part == vim_no_exe || part == vim_exe)
+                {
                     return true;
                 }
             }
@@ -190,13 +199,7 @@ impl State {
 fn term_command_from_client_list(clients: Vec<ClientInfo>) -> Option<String> {
     for c in clients {
         if c.is_current_client {
-            // Split by space and take the first part (the executable)
-            let full_command = c.running_command.split(' ').next()?;
-            // Split by both / and \ to handle both Unix and Windows paths
-            let command = full_command
-                .split(|c| c == '/' || c == '\\')
-                .next_back()?;
-            return Some(command.to_string());
+            return Some(c.running_command);
         }
     }
     None
