@@ -42,7 +42,11 @@ This is because the plugin is loaded with the configuration of the first command
 Available configuration options:
 - `move_mod`: The modifier keys passed to Neovim with `move_focus` or `move_focus_or_tab`. Default: `ctrl`. Multiple modifier keys should be separated with a `+`.
 - `resize_mod`: The modifier keys passed to Neovim with the `resize` command. Default: `alt`. Multiple modifier keys should be separated with a `+`.
+- `vims`: A semicolon-separated list of process names to be detected as Vim. This is particularly useful on Windows where the process might be `nvim.exe`, or if you use custom executable names. Default: `nvim;vim`.
 - `use_arrow_keys`: When set to `true`, uses arrow key sequences instead of hjkl for keybindings sent to Neovim. This setting can differ per command. Default: `false`.
+
+### Windows Support
+The plugin provides robust support for Windows environments, correctly detecting `nvim.exe` and handling both forward (`/`) and backward (`\`) path separators in the process command. It also supports paths with spaces, which are common in Windows environments.
 
 ### Modifier Keys Support
 
