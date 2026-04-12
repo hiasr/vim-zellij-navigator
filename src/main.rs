@@ -52,7 +52,17 @@ impl ZellijPlugin for State {
     fn update(&mut self, event: Event) -> bool {
         match event {
             Event::ListClients(list) => {
+                // If no client claims this plugin instance, it's orphaned
+                // (happens when a second client attaches then detaches,
+                // leaving a duplicate plugin instance with no owner).
+                // Skip command execution to prevent double-moves.
+                let has_current_client = list.iter().any(|c| c.is_current_client);
                 self.current_term_command = term_command_from_client_list(list);
+
+                if !has_current_client {
+                    self.command_queue.clear();
+                    return true;
+                }
 
                 if !self.command_queue.is_empty() {
                     let command = self.command_queue.pop_front().unwrap();
